@@ -45,9 +45,33 @@ p
 
 ```{r}
 # Make a scatter plot between price and livingArea
-p = ggplot(data = ) +
-  geom_(aes(x = , y = )) +
+p = ggplot(data = hData) +
+  geom_point(aes(x = livingArea, y = as.numeric(price) )) +
   labs(x = 'Living Area (square feet)', y = 'Price (US dollars)')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Make a box plot between price and heating
+p = ggplot(data = hData) +
+  geom_boxplot(aes(x = heating, y = as.numeric(price) )) +
+  labs(x = 'Heating', y = 'Price (US dollars)')  +
+   theme(axis.text = element_text(size = 12),
+   axis.text.x = element_text(size = 14),
+   axis.text.y = element_text(size = 14),
+   axis.title = element_text(size = 14, face = "bold")) 
+p
+```
+
+```{r}
+# Make a bar plot between frrequency and heating
+p = ggplot(data = hData) +
+  geom_bar(aes(x = heating, y = ..count../sum(..count..)*100)) +
+  labs(x = 'Heating', y = 'frequency %')  +
    theme(axis.text = element_text(size = 12),
    axis.text.x = element_text(size = 14),
    axis.text.y = element_text(size = 14),

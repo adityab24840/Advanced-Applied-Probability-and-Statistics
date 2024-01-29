@@ -1,6 +1,5 @@
 ---
 title: "Linear Regression Models, Segment 1, Topic 2: Simple Linear Regression Model (SLRM) and its assumptions
-"
 editor_options:
   chunk_output_type: console
 output: html_notebook

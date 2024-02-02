@@ -91,13 +91,14 @@ p
 ```{r}
 # Build a linear model to predict price per square feet as a function of logrent
 model = lm(price_per_sqft ~ logrent, data = hData)
+summary(model)
 ```
 
 ```{r}
 # Build a linear model to predict log of price per square feet as a function of logrent
 hData$logprice_per_sqft = lm(price_per_sqft ~ logrent, data = hData)$residuals
 model = lm(logprice_per_sqft ~ logrent, data = hData)
-
+summary(model)
 ```
 
 ```{r}

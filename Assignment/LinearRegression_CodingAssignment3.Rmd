@@ -1,0 +1,111 @@
+---
+title: "Linear Regression Coding Assignment-3"
+editor_options:
+  chunk_output_type: console
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(reshape)
+```
+
+```{r}
+# Load the diabetes dataset: 
+# 10 predictors which are age, gender (1-female, 2-male), body-mass index, average blood pressure, and six blood serum measurements and 1 response variable which is a quantitative measure of disease progression one year after baseline)
+df = read.csv('diabetes.csv', header = TRUE, stringsAsFactors = FALSE)
+str(df)
+```
+
+```{r}
+# Create a new feature called BMILEVEL using the BMI column and the following rules: BMI < 18.5 is underweight, 18.5 <= BMI <= 24.9 is healthy, 25 <= BMI <= 29.9 is overweight, BMI >= 30 is unhealthy
+df = df %>% mutate(BMILEVEL = case_when(BMI < 18.5 ~ 'underweight', BMI >= 18.5 & BMI <= 24.9 ~ 'healthy', BMI >= 25 & BMI <= 29.9 ~ 'overweight', BMI >= 30 ~ 'unhealthy'))
+str(df)
+```
+
+
+```{r}
+# Convert 'GENDER' and 'BMILEVEL' columns to factors
+categorical_cols = c('GENDER', 'BMILEVEL')
+df[categorical_cols] = lapply(df[categorical_cols], as.factor)
+str(df)
+```
+
+```{r}
+# Create a list of continuous columns
+continuous_cols = setdiff(colnames(df), categorical_cols)
+continuous_cols
+```
+
+```{r}
+# How many levels does the categorical variable *BMILEVEL* have? What is the reference level? 
+contrasts(df$BMILEVEL)
+levels(df$BMILEVEL)
+```
+
+```{r}
+# Fit a linear model for predicting disease progression using BMILEVEL. Print the model's summary.
+# How accurate is the model?
+# Which level in BMILEVEL is most likely to not have a linear relationship with disease progression? What is the reason?
+# How worse is the disease progression in unhealthy people compared to the healthy ones?
+# How worse is the disease progression in unhealthy people compared to the overweight ones?
+# Write down the individual model for each level in BMILEVEL
+# Fit a linear model for predicting disease progression using BMILEVEL. Print the model's summary.
+model <- lm( Y  ~ BMILEVEL, data = df)
+summary(model)
+```
+
+---The model using only BMI levels explains about 28.32% of the variation in disease progression. It suggests that being "underweight" might not strongly affect disease progression, as its impact isn't clear and can vary a lot.
+---
+
+```{r}
+# Fit a linear model for predicting disease progression using BMILEVEL and the blood serum measurements. 
+# From the model summary, explain how you will find out which blood serum measurements are most likely to have a linear relationship with disease progression.
+# Fit a model using BMILEVEL and the blood serum measurements identified in the previous question and compare its accuracy with the model fit using BMILEVEL and all blood serum measurements.
+model <- lm(Y ~ BMILEVEL + ., data = df)
+summary(model)
+```
+
+---To figure out which blood tests are important for predicting disease progression, we check how much each blood test affects the prediction in our model results, focusing on those with smaller p-values.
+---
+
+```{r}
+# Fit a linear model for predicting disease progression using BMI, age, BP, and gender. How accurate is the model? 
+# According to the model, which gender has a worse disease progression? Explain why.
+# For the same age, BP, and gender, decreasing BMI by 1 unit causes what change in the disease progression?
+# For the same age and BP, which gender benefits better w.r.t. disease progressions by decreasing BMI by 1 unit. Explain.
+model <- lm(Y ~ BMILEVEL + S1 + S2 + S3 + S4 + S5 + S6, data = df)
+summary(model)
+```
+
+---model can predict about 44.75% of how disease changes over time, but it doesn't say which gender tends to have worse disease progression since gender wasn't included as a factor in the prediction.
+
+---
+  
+```{r}
+# Fit a linear model for predicting disease progression using BMI, age, BP, gender and interaction between BMI and gender. Is this model more accurate than the model without interaction between BMI and gender?
+# Fit the model without interaction term
+model1 <- lm(Y ~ BMI + AGE + BP + GENDER, data = df)
+summary1 <- summary(model1)
+
+# Fit the model with interaction term
+model2 <- lm(Y ~ BMI * GENDER + AGE + BP, data = df)
+summary2 <- summary(model2)
+
+cat("R-squared value for model without interaction: ", summary1$r.squared, "\n")
+cat("R-squared value for model with interaction: ", summary2$r.squared, "\n")
+
+anova(model1, model2)
+
+```
+---
+
+The model with interaction term is more accurate than the model without interaction term. The R-squared value for the model without interaction is 0.388 and the R-squared value for the model with interaction is 0.392. The p-value for the interaction term is less than 0.05, which means that the interaction term is significant in the model.
+---
+
+
+
+
+

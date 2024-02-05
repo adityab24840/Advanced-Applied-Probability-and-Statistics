@@ -1,0 +1,163 @@
+---
+title: "Linear Regression Coding Assignment-2"
+editor_options:
+  chunk_output_type: inline
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(HSAUR)
+library(ggcorrplot)
+```
+
+```{r}
+# Load the heptathlon dataset
+data(heptathlon)
+str(heptathlon)
+```
+
+```{r}
+# Introduce a new column called sprint highlighting slow and fast sprinters
+heptathlon = heptathlon %>% mutate(sprint = ifelse(run200m <= 25 & run800m <= 129, 'fast', 'slow'))
+str(heptathlon)
+```
+
+```{r}
+# Change sprint column to factor type
+heptathlon['sprint'] = lapply(heptathlon['sprint'], as.factor)
+str(heptathlon)
+```
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis). What do you observe from this plot?
+p = ggplot(heptathlon, aes(x=run200m,y=longjump))+
+  geom_point(color='pink',size=4)+  labs(title = "Scatter Plot",x='Run 200m',y='longjump')+ 
+  theme_minimal()
+p
+```
+
+```{r}
+# Correlation between all pairs of continuous predictors (leave out sprint and the response variable score). What do you observe?
+cor_matrix = cor(heptathlon %>% select(-c(sprint, score)))
+ggcorrplot(cor_matrix, method = 'circle', lab = TRUE)
+
+#Values close to 1 indicate a strong positive correlation, while values close to -1 indicate a strong negative correlation.
+```
+
+
+```{r}
+# Make a scatter plot between *run200m* (x-axis) and *longjump* (y-axis) now with the data points color-coded using *sprint*. What do you observe from this plot?
+ggplot(heptathlon, aes(x = run200m, y = longjump, color = sprint)) +
+  geom_point() +
+  labs(title = "Scatter Plot: run200m vs longjump with Sprint Color Coding",
+       x = "run200m", y = "longjump") + theme_minimal()
+```
+
+```{r}
+# Calculate Pearson's correlation between *run200m* and *longjump*. What do you observe?
+
+cor2 = cor(heptathlon['run200m'], heptathlon['longjump'], method = "pearson")
+cor2
+```
+
+```{r}
+# How many levels does the categorical variable *sprint* have? What is the reference level? 
+contrasts(heptathlon$sprint)
+levels(heptathlon$sprint)
+
+# 2 levels
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *sprint*. Print the model's summary. How accurate is the model? How do the slow athletes' scores compare to the fast ones?
+model = lm(data = heptathlon, score ~ sprint)
+summary(model)
+mean_slow = mean(heptathlon[heptathlon$sprint == 'slow', 'score'])
+mean_fast = mean(heptathlon[heptathlon$sprint == 'fast', 'score'])
+mean_slow
+mean_fast
+mean_slow-mean_fast
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot* and *sprint*. Print the model's summary and answer the following questions:
+
+# 1. Did the addition of the new predictor *shot* improve the model accuracy? 
+# 2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and shotput performance.
+# 3. For a 1 metre increase in shot put throw and with the same sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model = lm(data = heptathlon,score ~ shot + sprint)
+summary(model)
+
+# accuracy increases after adding the feature shot
+#true
+#[135.236,364.164].
+```
+
+```{r}
+#  Using the model built above, extract the slope and intercept for estimating the *score* of *slow* and *fast* athletes. 
+# For slow athletes
+intercept_slow = 3080.0
+slope_slow = 249.7
+
+# For fast athletes
+intercept_fast = 2749.6
+slope_fast = 249.7
+
+```
+
+```{r}
+# Complete the code below to build a linear model for approximating *score* as a function of *shot* and *sprint* using the training data. Predict the model performance by applying it to the test data.
+# Split the data into 80% train and 20% test parts
+set.seed(0)
+train_ind = sample(1:nrow(heptathlon), size = 0.8*nrow(heptathlon))
+
+hDataTrain = heptathlon[train_ind, ]
+hDataTest = heptathlon[-train_ind, ] 
+
+# Build linear regression model
+model = lm(score ~ shot + sprint, data = hDataTrain)
+
+# Predict on the test data
+predictions = predict(model, newdata = hDataTest)
+
+# Print the true and predicted scores for the test data
+print(cbind(TrueScore = hDataTest$score, PredictedScore = predictions))
+
+# Calculate the model error (mean-squared error for test data)
+mse = mean((hDataTest$score - predictions)^2)
+print(paste("Mean Squared Error: ", mse))
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *shot*, *javelin*, and *sprint*. Print the model's summary and answer the following questions:
+
+#1. Did the addition of the new predictor *javelin* improve the model accuracy? 
+#2. *True/false* (explain in one line): the model suggests that there is a possible linear relationship between an athlete's score and javelin performance.
+#3. For a 1 metre increase in shot put throw and with the same javelin and sprint performance, we can say with 95% confidence that the athlete's score will increase/decrease by an amount in the interval [?, ?].
+model =  lm(score ~ shot + javelin + sprint, data = hDataTrain)
+summary(model)
+
+# there is no significant increase in accuracy
+# false
+#[137.37,417.93]
+
+```
+
+```{r}
+# Fit a linear model for approximating *score* as a function of *highjump*, and *sprint*. Print the model's summary and answer the following questions:
+# 1. How accurate is this model?
+# 2. Considering a p-value of 10% as cutoff, are there any insignificant features?
+model = lm(data = hDataTrain,score ~ highjump + sprint)
+summary(model)
+
+#Multiple R-squared:  0.8369,	Adjusted R-squared:  0.8177 
+#no
+```
+

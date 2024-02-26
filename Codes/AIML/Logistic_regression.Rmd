@@ -1,0 +1,79 @@
+```{r}
+# Load essential libraries
+library(ggplot2)
+library(dplyr)
+library(HSAUR)
+library(ggcorrplot)
+```
+
+```{r}
+# Load the data
+file= "diabetes_ logistic_regression.csv"
+
+diabetes = read.csv(file, header = TRUE, stringsAsFactors = FALSE)
+
+```
+
+```{r}
+# Check the structure of the data
+str(diabetes)
+```
+
+```{r}
+# Check the summary of the data
+summary(diabetes)
+```
+
+```{r}
+#confusion matrix
+train <- sample(1:nrow(diabetes), nrow(diabetes) * 0.7)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = diabetes[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = diabetes[train, ], type = "response")
+
+# Create the confusion matrix
+confusion_matrix <- table(diabetes$Outcome[train], predictions > 0.5)
+confusion_matrix
+```
+
+```{r}
+library(pROC)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = diabetes[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = diabetes[train, ], type = "response")
+
+# Compute the ROC curve
+roc_obj <- roc(diabetes$Outcome[train], predictions)
+
+# Plot the ROC curve
+plot(roc_obj, main="ROC Curve", xlab="False Positive Rate", ylab="True Positive Rate")
+
+# Compute the AUC
+auc_value <- auc(roc_obj)
+
+# Print the AUC value on the plot
+text(0.8, 0.2, paste("AUC =", round(auc_value, 2)))
+```
+
+```{r}
+
+library(PRROC)
+
+# Fit the model on the training set
+model <- glm(Outcome ~ ., data = diabetes[train, ], family = binomial)
+
+# Make predictions on the training set
+predictions <- predict(model, newdata = diabetes[train, ], type = "response")
+
+# Compute the precision-recall curve with curve = TRUE
+prc_obj <- pr.curve(scores.class0 = predictions, weights.class0 = diabetes$Outcome[train], curve = TRUE)
+
+# Plot the precision-recall curve
+plot(prc_obj, main="Precision-Recall Curve", xlab="Recall", ylab="Precision")
+```
